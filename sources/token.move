@@ -1,24 +1,34 @@
-module Token {
-  // The total supply of the token
-  let total_supply: u64;
-  // A mapping from account addresses to their token balance
-  let balances: map<address, u64>;
+module AptosToken {
+    // Total supply of tokens
+    let total_supply: u64;
+    // Mapping from address to balance
+    let balances: map<address, u64>;
+    // event for transfer of tokens
+    event Transfer(address, address, u64);
 
-  // Initializes the total supply and assigns all of the tokens to the contract creator
-  init(supply: u64) {
-    total_supply = supply;
-    balances[get_txn_sender()] = supply;
-  }
+    // constructor to initialize total supply
+    public new(initial_supply: u64) {
+        total_supply = initial_supply;
+        balances[get_txn_sender()] = initial_supply;
+    }
 
-  // Transfers tokens from the sender's balance to the recipient's balance
-  fun transfer(recipient: address, amount: u64) {
-    assert(balances[get_txn_sender()] >= amount, "Not enough balance.");
-    balances[get_txn_sender()] -= amount;
-    balances[recipient] += amount;
-  }
+    // function to get the balance of an address
+    public fun balance_of(address: address): u64 {
+        return balances[address];
+    }
 
-  // Returns the token balance of a given account address
-  fun balance_of(account: address): u64 {
-    return balances[account];
-  }
+    // function to transfer tokens from one address to another
+    public fun transfer(to: address, value: u64): bool {
+        // check if sender has enough balance
+        require(balances[get_txn_sender()] >= value, "Sender has insufficient balance.");
+        // check if recipient address is not null
+        require(to != address(0), "Recipient address is null.");
+        // update sender's balance
+        balances[get_txn_sender()] -= value;
+        // update recipient's balance
+        balances[to] += value;
+        // emit event
+        emit Transfer(get_txn_sender(), to, value);
+        return true;
+    }
 }
